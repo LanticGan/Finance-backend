@@ -8,9 +8,17 @@ var sqlObj = require('../db/mysql');
 var sql = $mysql.createConnection(sqlObj.mysql) 
 sql.connect();
 
+// sql.query(`SELECT NAME FROM Stock WHERE Code='n000001'`, (error, results, fields) => {
+//   if (error) {
+//     console.log('err', error)
+//   } else {
+//     console.log('r', results[0]);
+//   }
+// });
+
 
 router.get('/fetch_data_base', (req,res,next) => {
-  sql.query('SELECT * FROM Comments limit 0,10', (error, results, fields) =>{
+  sql.query('SELECT * FROM Comment limit 0,10', (error, results, fields) =>{
     if (error) {
       res.send('error');
     } else {
@@ -56,184 +64,33 @@ router.post('/login/account', function(req, res, next) {
 
 // 帖子抓取
 router.get('/fake_list', function(req, res, next) {
-  const { page = 0, count = 8 } = req.query;
-  sql.query(`SELECT * FROM Comments limit ${page * 8}, ${page * 8 + count}`, (error, results, fields) =>{
+  const { page = 0, count = 8, searchKey = '' } = req.query;
+  let commentsQuery = '';
+  if (searchKey) {
+    commentsQuery = `SELECT * FROM Comment WHERE StockId='n${searchKey}' limit ${page * 8}, ${page * 8 + count}`
+  } else {
+    commentsQuery = `SELECT * FROM Comment limit ${page * 8}, ${page * 8 + count}`
+  }
+  
+  sql.query(commentsQuery, (error, results, fields) =>{
     if (error) {
-      res.send('error');
+      res.send('error'); 
     } else {
-      results.forEach(element => {
-        element.status = 0
+      let sotckNameQuery = `SELECT NAME FROM Stock WHERE Code='n${searchKey}'`;
+      sql.query(sotckNameQuery, (er, stockresults, stockfields) => {
+        if (er) throw er;
+        let stock = stockresults[0], stockName = '';
+        if (stock) {
+          stockName = stock.NAME;
+        }
+        results.forEach(element => {
+          element.status = 0
+          element.stockName = stockName;
+        });
+        res.send(JSON.stringify(results));
       });
-      res.send(JSON.stringify(results));
     }
   })
-  // const listData = [{
-  //   "id": "fake-list-0",
-  //   "owner": "财经评论",
-  //   "title": "央行副行长陈雨露：中国股市正显示出触底和复苏迹象",
-  //   "avatar": "http://avator.eastmoney.com/qface/9313013693864916/50",
-  //   "cover": "http://avator.eastmoney.com/qface/9313013693864916/50",
-  //   "status": "0",
-  //   "percent": 79,
-  //   "logo": "http://avator.eastmoney.com/qface/9313013693864916/50",
-  //   "href": "http://guba.eastmoney.com/news,cjpl,816338498.html",
-  //   "updatedAt": "2019-04-14T09:41:51.276Z",
-  //   "createdAt": "2019-04-14T09:41:51.276Z",
-  //   "subDescription": "那是一种内在的东西， 他们到达不了，也无法触及的",
-  //   "description": "中国人民银行副行长陈雨露13日表示，国际货币基金组织(IMF)应继续推动份额和治理改革，增强新兴市场和发展中国家的话语权与代表性。",
-  //   "activeUser": 134112,
-  //   "newUser": 1497,
-  //   "star": 161,
-  //   "like": 127,
-  //   "message": 19,
-  //   "content": "中国人民银行副行长陈雨露13日表示，国际货币基金组织(IMF)应继续推动份额和治理改革，增强新兴市场和发展中国家的话语权与代表性。",
-  //   "members": [{
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/ZiESqWwCXBRQoaPONSJe.png",
-  //     "name": "曲丽丽",
-  //     "id": "member1"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/tBOxZPlITHqwlGjsJWaF.png",
-  //     "name": "王昭君",
-  //     "id": "member2"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/sBxjgqiuHMGRkIjqlQCd.png",
-  //     "name": "董娜娜",
-  //     "id": "member3"
-  //   }]
-  // }, {
-  //   "id": "fake-list-1",
-  //   "owner": "东方财富网",
-  //   "title": "行情调整，蓄势待发？7×24小时股票快捷开户,把握逢低介入机会！",
-  //   "avatar": "http://avator.eastmoney.com/qface/6712111507146464/50",
-  //   "cover": "http://avator.eastmoney.com/qface/6712111507146464/50",
-  //   "status": "0",
-  //   "percent": 57,
-  //   "logo": "http://avator.eastmoney.com/qface/6712111507146464/50",
-  //   "href": "http://guba.eastmoney.com/news,gssz,809161988.html",
-  //   "updatedAt": "2019-04-14T07:41:51.276Z",
-  //   "createdAt": "2019-04-14T07:41:51.276Z",
-  //   "subDescription": "互联网时代，炒股就选互联网券商——东方财富证券",
-  //   "description": "东方财富证券6大核心优势：",
-  //   "activeUser": 166518,
-  //   "newUser": 1770,
-  //   "star": 138,
-  //   "like": 144,
-  //   "message": 12,
-  //   "content": "段落示意：蚂蚁金服设计平台 ant.design，用最小的工作量，无缝接入蚂蚁金服生态，提供跨越设计与开发的体验解决方案。蚂蚁金服设计平台 ant.design，用最小的工作量，无缝接入蚂蚁金服生态，提供跨越设计与开发的体验解决方案。",
-  //   "members": [{
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/ZiESqWwCXBRQoaPONSJe.png",
-  //     "name": "曲丽丽",
-  //     "id": "member1"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/tBOxZPlITHqwlGjsJWaF.png",
-  //     "name": "王昭君",
-  //     "id": "member2"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/sBxjgqiuHMGRkIjqlQCd.png",
-  //     "name": "董娜娜",
-  //     "id": "member3"
-  //   }]
-  // }, {
-  //   "id": "fake-list-2",
-  //   "owner": "股友jwDak",
-  //   "title": "大妈都发话中国股市正显示出触底和复苏迹象",
-  //   "avatar": "http://avator.eastmoney.com/qface/3880365520650954/50",
-  //   "cover": "http://avator.eastmoney.com/qface/3880365520650954/50",
-  //   "status": "-1",
-  //   "percent": 57,
-  //   "logo": "http://avator.eastmoney.com/qface/3880365520650954/50",
-  //   "href": "http://guba.eastmoney.com/news,szzs,816345954.html",
-  //   "updatedAt": "2019-04-14T05:41:51.276Z",
-  //   "createdAt": "2019-04-14T05:41:51.276Z",
-  //   "subDescription": "生命就像一盒巧克力，结果往往出人意料",
-  //   "description": "在中台产品的研发过程中，会出现不同的设计规范和实现方式，但其中往往存在很多类似的页面和组件，这些类似的组件会被抽离成一套标准规范。",
-  //   "activeUser": 106373,
-  //   "newUser": 1770,
-  //   "star": 120,
-  //   "like": 128,
-  //   "message": 17,
-  //   "content": "段落示意：蚂蚁金服设计平台 ant.design，用最小的工作量，无缝接入蚂蚁金服生态，提供跨越设计与开发的体验解决方案。蚂蚁金服设计平台 ant.design，用最小的工作量，无缝接入蚂蚁金服生态，提供跨越设计与开发的体验解决方案。",
-  //   "members": [{
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/ZiESqWwCXBRQoaPONSJe.png",
-  //     "name": "曲丽丽",
-  //     "id": "member1"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/tBOxZPlITHqwlGjsJWaF.png",
-  //     "name": "王昭君",
-  //     "id": "member2"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/sBxjgqiuHMGRkIjqlQCd.png",
-  //     "name": "董娜娜",
-  //     "id": "member3"
-  //   }]
-  // }, {
-  //   "id": "fake-list-3",
-  //   "owner": "可信度95",
-  //   "title": "我用了半年的时间钻研如何逃顶！",
-  //   "avatar": "http://avator.eastmoney.com/qface/2980113688370150/50",
-  //   "cover": "http://avator.eastmoney.com/qface/2980113688370150/50",
-  //   "status": "1",
-  //   "percent": 68,
-  //   "logo": "http://avator.eastmoney.com/qface/2980113688370150/50",
-  //   "href": "http://guba.eastmoney.com/news,szzs,815513661.html",
-  //   "updatedAt": "2019-04-14T03:41:51.276Z",
-  //   "createdAt": "2019-04-14T03:41:51.276Z",
-  //   "subDescription": "城镇中有那么多的酒馆，她却偏偏走进了我的酒馆",
-  //   "description": "我用了半年的时间钻研如何逃顶！",
-  //   "activeUser": 166243,
-  //   "newUser": 1795,
-  //   "star": 168,
-  //   "like": 197,
-  //   "message": 14,
-  //   "content": "我用了半年的时间钻研如何逃顶！",
-  //   "members": [{
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/ZiESqWwCXBRQoaPONSJe.png",
-  //     "name": "曲丽丽",
-  //     "id": "member1"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/tBOxZPlITHqwlGjsJWaF.png",
-  //     "name": "王昭君",
-  //     "id": "member2"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/sBxjgqiuHMGRkIjqlQCd.png",
-  //     "name": "董娜娜",
-  //     "id": "member3"
-  //   }]
-  // }, {
-  //   "id": "fake-list-4",
-  //   "owner": "疯狂一回8888",
-  //   "title": "盘洗完了吗",
-  //   "avatar": "http://avator.eastmoney.com/qface/1311094251881876/50",
-  //   "cover": "http://avator.eastmoney.com/qface/1311094251881876/50",
-  //   "status": "-1",
-  //   "percent": 64,
-  //   "logo": "http://avator.eastmoney.com/qface/1311094251881876/50",
-  //   "href": "http://guba.eastmoney.com/news,szzs,815955271.html",
-  //   "updatedAt": "2019-04-14T01:41:51.276Z",
-  //   "createdAt": "2019-04-14T01:41:51.276Z",
-  //   "subDescription": "那时候我只会想自己想要什么，从不想自己拥有什么",
-  //   "description": "听风就是雨，听响就是金。",
-  //   "activeUser": 141687,
-  //   "newUser": 1450,
-  //   "star": 139,
-  //   "like": 196,
-  //   "message": 12,
-  //   "content": "将你哭声调成静音的过程。",
-  //   "members": [{
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/ZiESqWwCXBRQoaPONSJe.png",
-  //     "name": "曲丽丽",
-  //     "id": "member1"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/tBOxZPlITHqwlGjsJWaF.png",
-  //     "name": "王昭君",
-  //     "id": "member2"
-  //   }, {
-  //     "avatar": "https://gw.alipayobjects.com/zos/rmsportal/sBxjgqiuHMGRkIjqlQCd.png",
-  //     "name": "董娜娜",
-  //     "id": "member3"
-  //   }]
-  // }];
-  // res.send(JSON.stringify(listData));
 });
 
 
